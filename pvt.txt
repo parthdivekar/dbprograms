@@ -1,0 +1,37 @@
+CREATE OR REPLACE procedure sp_pivot_data 
+(sqltext in varchar2, -- Base SQL for Pivot
+ pivtonon in varchar2, -- field to be used as column
+ whtpivot in varchar2, -- aggregation column to be used
+ pvtcoltab varchar2, --Table to generate the column list for pivot
+ aggaction varchar2, -- Aggregation expression to be used
+ pivottabname varchar2 -- Table in which data to  be stored.
+ )
+as 
+pvttxt varchar2(32000);
+sql_stmt varchar2(32000);
+pvtsql varchar2(32000);
+tbcnt number;
+begin
+--Preparing sql statement for collecting the column data
+sql_stmt := 'select listagg('||pivtonon||','','') within group ( order by '||pivtonon||' ) from '|| pvtcoltab;--||' where'|| pvtwhrclasue; 
+dbms_output.put_line (sql_stmt);
+
+ execute immediate sql_stmt into pvttxt;-- using pivtonon,pivtonon;
+  dbms_output.put_line (pvttxt);
+ --Preparing SQL for PIVOT results
+pvtsql:= 'select * from ('||sqltext||') pivot ('||aggaction||'('||whtpivot||') as '||whtpivot||' for '||pivtonon||' in ('||pvttxt||'))';
+  dbms_output.put_line (pvtsql);
+--Storing data in table
+
+select count(*) into tbcnt from user_tables  where table_name =upper( pivottabname);
+  if tbcnt=1  then  execute immediate ' drop table '|| pivottabname;
+   else  
+    execute immediate 'create table '|| pivottabname||' as '||pvtsql;
+  end if;
+ 
+exception 
+ when others then  
+  dbms_output.put_line('Error Occured : '||SQLERRM);
+
+end;
+/
