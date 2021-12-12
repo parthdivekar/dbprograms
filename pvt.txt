@@ -1,3 +1,4 @@
+#Added line by Parth
 CREATE OR REPLACE procedure sp_pivot_data 
 (sqltext in varchar2, -- Base SQL for Pivot
  pivtonon in varchar2, -- field to be used as column
